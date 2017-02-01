@@ -1,0 +1,50 @@
+dim puzzle(3, 3) as byte : global xc as dword : global yc as dword : sync on : sync rate 40 : sync sleep 1 : color backdrop 0 : xc = 3
+for y = 0 to 3
+  for x = 0 to 3
+    puzzle(x, y) = y*4+x+1
+  next x
+next y
+load image "pic.jpg", 1 : sprite 17, 0, 0, 1 : hide sprite 17 : paste image 1, 0, 0
+for y = 0 to 3
+  for x = 0 to 3
+    get image puzzle(x, y)+1, x*200, y*150, (x+1)*200-1, (y+1)*150-1 : sprite puzzle(x, y), x*200, y*150, puzzle(x, y)+1
+  next x
+next y
+hide sprite 4 : scramble()
+do : if mouseclick() then slide(mousex()/200, mousey()/150, 1)
+  sync
+loop
+function scramble()
+for t = 0 to 500
+if slide(xc-1+rnd(2), yc-1+rnd(2), 0) = 0 then dec t
+next t
+endfunction
+function slide(x as integer, y as integer, turn as boolean)
+  if x < 0 or x > 3 or y < 0 or y > 3 then exitfunction 0
+  if abs(x-xc) + abs(y-yc) <> 1 then exitfunction 0
+  sprite puzzle(xc, yc), x*200, y*150, puzzle(xc, yc)+1 : xm = x*200 : ym = y*150
+  if turn
+    repeat
+      if xm > xc*200 : dec xm, 25
+      else : if xm < xc*200 then inc xm, 25
+      endif
+      if ym > yc*150 : dec ym, 25
+      else : if ym < yc*150 then inc ym, 25
+      endif
+      sprite puzzle(x, y), xm, ym, puzzle(x, y)+1
+      sync
+    until xm = xc*200 and ym = yc*150
+  else
+    sprite puzzle(x, y), xc*200, yc*150, puzzle(x, y)+1
+  endif
+  swap = puzzle(x, y) : puzzle(x, y) = puzzle(xc, yc) : puzzle(xc, yc) = swap : xc = x : yc = y
+  if turn
+    for y = 0 to 3
+      for x = 0 to 3
+        if puzzle(x, y) <> y*4+x+1 then exitfunction 1
+      next x
+    next y
+    hide all sprites : show sprite 17 : repeat : sync
+    until mouseclick() : show all sprites : hide sprite 17 : hide sprite 4: scramble()
+  endif
+endfunction 1
